@@ -1,0 +1,9 @@
+{
+  "version": "1",
+  "name": "Mordfall-AI Backend",
+  "type": "collection",
+  "ignore": [
+    "node_modules",
+    ".git"
+  ]
+}

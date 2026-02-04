@@ -1,0 +1,13 @@
+{
+  "name": "mordfall-ai",
+  "version": "1.0.0",
+  "scripts": {
+    "install:all": "cd backend && bun install && cd ../frontend && npm install",
+    "start:all": "concurrently \"cd backend && npm run start\" \"cd frontend && npm run dev\""
+  },
+  "author": "Shukaaa",
+  "license": "ISC",
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
+}

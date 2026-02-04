@@ -1,0 +1,15 @@
+meta {
+  name: Fetch all Dialogs
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{apiUrl}}/cases/:id
+  body: none
+  auth: inherit
+}
+
+params:path {
+  id: 1
+}
