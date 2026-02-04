@@ -1,13 +1,11 @@
 # Noir Atmosphäre
 
-- [ ] White Mode Support
 - [x] Typewriter-Effekt
   - Kleine Animation nachdem ein Text verfasst wurde + Soundeffekt
 - [x] Hintergrundmusik
-- [ ] Einstellungs-Dialog
+- [x] Einstellungs-Dialog
   - Musik an/aus
   - Soundeffekte an/aus
-  - Thema wechseln (Dark Mode/Light Mode)
 
 # Gameplay
 
@@ -27,3 +25,8 @@
 
 - [ ] Wenn man den Fall gelöst hat kann man einen Fallbericht lesen, der die Geschichte zusammenfasst und als pdf exportieren kann
 - [ ] Nach abschluss eines Falls eine Statistik über die gesammelten Informationen, getroffenen Entscheidungen, gesammelten Gegenstände, Ingame-Zeit, etc. anzeigen
+- [ ] Create own Scenarios
+  - Description of crime, Suspects, Location, Evidence
+  - KI generiert daraus einen Fall
+- [ ] Option Szenarios zu teilen (z.B. als JSON Datei exportieren/importieren)
+- [ ] Fälle löschen
