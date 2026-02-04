@@ -9,7 +9,7 @@
 
 # Gameplay
 
-- [ ] Inventar hinzufügen
+- [x] Inventar hinzufügen
   - Man kann Gegenstände sammeln und benutzen z.B. Schlüssel
 - [ ] Evidence Log Rework
   - Beweise werden mit Tags versehen (z.B. Tatort, Zeugenaussagen, Forensik)
@@ -20,6 +20,8 @@
     - Profile (getroffene Personen, automatisches aufnehmen von Informationen über diese)
 - [ ] Game Over und Lösungs-Dialog
     - Man kann einen "Fall lösen" der dann abgeglichen wird mit dem Szenario
+- [ ] Storytelling Settings
+  - Ausführlichere oder etwas kürzere Antworten, ...
 
 # Fancy Features
 

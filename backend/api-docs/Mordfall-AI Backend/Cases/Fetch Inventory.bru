@@ -1,11 +1,11 @@
 meta {
-  name: Fetch all Core Informations
+  name: Fetch Inventory
   type: http
-  seq: 2
+  seq: 5
 }
 
 get {
-  url: {{apiUrl}}/cases/:id/coreinfos
+  url: {{apiUrl}}/cases/:id/inventory
   body: none
   auth: inherit
 }

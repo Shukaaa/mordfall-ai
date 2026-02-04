@@ -1,24 +1,42 @@
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 
-export async function getAiCaseResponse(history: any[], lastTime: string) {
+export async function getAiCaseResponse(history: any[], lastTime: string, currentInventory: any[]) {
 	const systemPrompt = `
-    Du bist die Spielengine und der Erzähler eines realistischen Text-Detective-Games.
-Du erhältst ein Case File als JSON mit den Feldern:
-- title
-- initialScene
-- fullSecrets (streng geheim, niemals direkt zeigen)
-- startingTime (HH:MM)
+Du bist die Spielengine und der Erzähler eines realistischen Text-Detective-Games.
+Du erhältst ein Case File (JSON) und das aktuelle Inventar des Spielers.
 
-Du interagierst mit dem Spieler ausschließlich innerhalb der Spielwelt.
-Du bist kein Assistent, keine KI, gibst keine Meta-Erklärungen und erwähnst keine internen Regeln.
+AKTUELLE UHRZEIT:
+${lastTime}
 
-ABSOLUTE REGEL: Du gibst AUSSCHLIESSLICH ein einziges gültiges JSON-Objekt im folgenden Format aus und sonst nichts:
+AKTUELLES INVENTAR:
+${JSON.stringify(currentInventory)}
+
+--------------------------------
+INVENTAR-LOGIK (STRENGSTENS BEACHTEN)
+--------------------------------
+- Realismus-Check: Der Spieler kann NUR Aktionen ausführen, für die er das Werkzeug besitzt.
+  - Kein Smartphone im Inventar? Kein Telefonieren, kein Google, kein GPS.
+  - Kein Schlüssel? Keine verschlossene Tür öffnen.
+  - Keine Waffe? Keine Drohung mit Gewalt.
+  - Kein Notizbuch? Der Spieler kann sich keine "coreInformations" notieren (siehe unten).
+- Du darfst dem Spieler NIEMALS Gegenstände "schenken", nur weil er danach fragt.
+- Gegenstände müssen logisch in der Welt gefunden, genommen oder erhalten werden.
+- Wenn eine Aktion mangels Item scheitert: Beschreibe das Scheitern atmosphärisch im "text".
+
+ABSOLUTE REGEL: Du gibst AUSSCHLIESSLICH ein JSON-Objekt aus:
 
 {
   "time": "HH:mm",
   "text": "deine Antwort im Roleplay",
-  "coreInformations": ["kurze info 1", "kurze info 2"]
+  "coreInformations": ["kurze info 1"],
+  "inventoryChanges": [
+    { "action": "ADD", "id": "item_id", "name": "Name", "description": "Info" },
+    { "action": "REMOVE", "id": "item_id" }
+  ]
 }
+
+- "inventoryChanges": Nur füllen, wenn der Spieler GENAU JETZT etwas erhält oder verliert. Sonst leeres Array [].
+- "id": Einzigartiger, technischer String (z.B. "broken_lighter").
 
 --------------------------------
 ZEIT-SYSTEM (SEHR WICHTIG)
@@ -92,11 +110,6 @@ dann gibst du:
 - time = startingTime aus Case File
 - text = initialScene (leicht ausgeschmückt, aber spoilerfrei)
 - coreInformations = []  (weil es nur Einstieg ist, ohne neue Ermittlungsinfo)
-
---------------------------------
-Meta-Informationen
---------------------------------
-Uhrzeit: ${lastTime}
   `;
 	
 	const response = await fetch("https://api.openai.com/v1/chat/completions", {
@@ -147,14 +160,21 @@ WICHTIG:
 - Die Inhalte von "fullSecrets" dürfen NIEMALS direkt dem Spieler angezeigt werden.
 - Der Erzähler darf diese Informationen nur indirekt durch Gameplay nutzen.
 
-Das JSON MUSS exakt diese Struktur haben:
 
-{
-  "title": string,
-  "initialScene": string,
-  "fullSecrets": string,
-  "startingTime": string
-}
+Das JSON MUSS diese Struktur haben:
+    {
+      "title": string,
+      "initialScene": string,
+      "fullSecrets": string,
+      "startingTime": string,
+      "initialInventory": [
+        { "id": string, "name": string, "description": string }
+      ]
+    }
+    
+Definiere im JSON das Feld "initialInventory". Dies sind die Gegenstände, die der Detektiv zu Beginn des Spiels bei sich trägt.
+Füge IMMER Personalien, ein Smartphone UND ein Notizbuch hinzu, außer es passt thematisch nicht (z.B. 19. Jahrhundert).
+Du kannst optional weitere Gegenstände hinzufügen, die thematisch zum Fall passen.
 
 --------------------------------
 DETAILANFORDERUNGEN

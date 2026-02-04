@@ -13,6 +13,13 @@ const routes: { method: string; pattern: RegExp; handler: RouteHandler }[] = [
 		}
 	},
 	{
+		method: "GET", pattern: /^\/api\/cases\/([^\/]+)\/inventory$/, handler: (_req, m) => {
+			const id = m?.[1];
+			if (!id) return new Response("Bad Request, missing case ID", {status: 400});
+			return CaseController.getInventory(id);
+		}
+	},
+	{
 		method: "GET", pattern: /^\/api\/cases\/([^\/]+)\/coreinfos$/, handler: (_req, m) => {
 			const id = m?.[1];
 			if (!id) return new Response("Bad Request, missing case ID", {status: 400});

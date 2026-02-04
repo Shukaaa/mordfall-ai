@@ -1,5 +1,11 @@
 export const API_BASE = "/api";
 
+export interface InventoryItem {
+	id: string;
+	name: string;
+	description: string;
+}
+
 export const ApiService = {
 	async listCases() {
 		const res = await fetch(`${API_BASE}/cases`);
@@ -16,6 +22,12 @@ export const ApiService = {
 		return res.json();
 	},
 	
+	async getInventory(caseId: string): Promise<InventoryItem[]> {
+		const res = await fetch(`${API_BASE}/cases/${caseId}/inventory`);
+		if (!res.ok) return [];
+		return res.json();
+	},
+	
 	async getCoreInfos(caseId: string) {
 		const res = await fetch(`${API_BASE}/cases/${caseId}/coreinfos`);
 		return res.json();
@@ -29,14 +41,4 @@ export const ApiService = {
 		});
 		return res.json();
 	},
-	
-	async textToSpeech(text: string): Promise<Blob> {
-		const res = await fetch(`${API_BASE}/tts`, {
-			method: "POST",
-			headers: { "Content-Type": "application/json" },
-			body: JSON.stringify({ text }),
-		});
-		if (!res.ok) throw new Error("TTS failed");
-		return res.blob();
-	}
 };

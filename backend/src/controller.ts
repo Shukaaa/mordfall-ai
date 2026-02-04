@@ -11,6 +11,17 @@ export const CaseController = {
       RETURNING id
     `).get(caseDetails.fullSecrets, caseDetails.title) as { id: number };
 		
+		if (caseDetails.initialInventory && Array.isArray(caseDetails.initialInventory)) {
+			const insertItem = db.prepare(`
+        INSERT INTO inventory (case_id, item_id, name, description)
+        VALUES (?, ?, ?, ?)
+      `);
+			
+			for (const item of caseDetails.initialInventory) {
+				insertItem.run(result.id, item.id, item.name, item.description);
+			}
+		}
+		
 		db.run(`
       INSERT INTO messages (case_id, role, content, game_time, core_info)
       VALUES (?, ?, ?, ?, ?)
@@ -70,16 +81,32 @@ export const CaseController = {
 		
 		const lastEntry = db.prepare("SELECT game_time FROM messages WHERE case_id = ? ORDER BY id DESC LIMIT 1").get(caseId) as { game_time: string };
 		const history = db.prepare("SELECT role, content FROM messages WHERE case_id = ?").all(caseId) as any[];
+		const currentInventory = db.prepare("SELECT item_id as id, name, description FROM inventory WHERE case_id = ?").all(caseId);
 		
 		const fullContext = [...history, { role: "user", content: message }];
-		const aiData = await getAiCaseResponse(fullContext, lastEntry?.game_time || "08:00");
+		const aiData = await getAiCaseResponse(fullContext, lastEntry?.game_time || "08:00", currentInventory);
 		
-		// In DB speichern
+		if (aiData.inventoryChanges && aiData.inventoryChanges.length > 0) {
+			for (const change of aiData.inventoryChanges) {
+				if (change.action === "ADD") {
+					db.run("INSERT INTO inventory (case_id, item_id, name, description) VALUES (?, ?, ?, ?)",
+							[caseId, change.id, change.name, change.description]);
+				} else if (change.action === "REMOVE") {
+					db.run("DELETE FROM inventory WHERE case_id = ? AND item_id = ?", [caseId, change.id]);
+				}
+			}
+		}
+		
 		db.run("INSERT INTO messages (case_id, role, content) VALUES (?, ?, ?)", [caseId, 'user', message]);
 		db.run("INSERT INTO messages (case_id, role, content, game_time, core_info) VALUES (?, ?, ?, ?, ?)",
 				[caseId, 'assistant', aiData.text, aiData.time, JSON.stringify(aiData.coreInformations)]);
 		
 		return Response.json(aiData);
+	},
+	
+	async getInventory(caseId: string) {
+		const rows = db.prepare("SELECT item_id as id, name, description FROM inventory WHERE case_id = ?").all(caseId);
+		return Response.json(rows);
 	},
 	
 	async streamTTS(req: Request) {
