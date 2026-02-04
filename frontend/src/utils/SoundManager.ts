@@ -1,3 +1,5 @@
+import {CustomStorage} from "./CustomStorage.ts";
+
 type SoundGroup = 'music' | 'ambient' | 'sfx' | 'voice';
 
 interface PlayOptions {
@@ -10,10 +12,10 @@ class SoundManager {
 	private cache: Record<string, HTMLAudioElement> = {};
 	
 	private groups: Record<SoundGroup, { volume: number; instances: HTMLAudioElement[] }> = {
-		music: { volume: 0.5, instances: [] },
-		ambient: { volume: 0.3, instances: [] },
-		sfx: { volume: 0.7, instances: [] },
-		voice: { volume: 1.0, instances: [] },
+		music:   { volume: CustomStorage.get('vol_music', 0.5),   instances: [] },
+		ambient: { volume: CustomStorage.get('vol_ambient', 0.3), instances: [] },
+		sfx:     { volume: CustomStorage.get('vol_sfx', 0.7),     instances: [] },
+		voice:   { volume: CustomStorage.get('vol_voice', 1.0),   instances: [] },
 	};
 	
 	preload(srcs: string[]) {
@@ -111,6 +113,7 @@ class SoundManager {
 	
 	setGroupVolume(group: SoundGroup, volume: number) {
 		this.groups[group].volume = volume;
+		CustomStorage.set(`vol_${group}`, volume);
 		this.groups[group].instances.forEach(a => {
 			a.volume = volume;
 		});
