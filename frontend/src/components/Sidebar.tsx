@@ -39,6 +39,11 @@ export default function Sidebar({ onSelectCase, activeId }: SidebarProps) {
 	
 	return (
 			<div className="w-64 bg-zinc-950 p-4 flex flex-col border-r border-zinc-800">
+				<div className="flex items-center gap-3 mb-4 pb-4 border-b border-zinc-900">
+					<img src="/images/icon.webp" alt="Icon" className="h-8 w-8 rounded-md object-cover" />
+					<h1 className="text-lg font-bold text-zinc-100">mordfall</h1>
+				</div>
+				
 				<button
 						type="button"
 						onClick={handleCreate}
@@ -58,6 +63,8 @@ export default function Sidebar({ onSelectCase, activeId }: SidebarProps) {
 							'+ Neuer Fall'
 					)}
 				</button>
+				
+				<label className="text-xs uppercase font-bold text-zinc-500 tracking-wider pb-4">Offene Fälle</label>
 				
 				<div className="flex-1 overflow-y-auto space-y-2" aria-live="polite">
 					{cases.map((c: CaseItem) => (
