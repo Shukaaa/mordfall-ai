@@ -16,25 +16,38 @@ type ChatWindowProps = {
 
 export default function ChatWindow({caseId, messages = [], onNewMessage}: ChatWindowProps) {
 	const [input, setInput] = useState<string>("");
+	const [loading, setLoading] = useState<boolean>(false);
 	
 	const handleSend = async () => {
-		if (!input.trim() || !caseId) return;
+		if (!input.trim() || !caseId || loading) return;
 		const userText = input;
 		setInput("");
 		onNewMessage({role: "user", content: userText, time: "..."});
 		
-		const aiRes = (await ApiService.sendChatMessage(caseId, userText)) as {
-			text: string;
-			time: string;
-			coreInformations?: string[];
-		};
-		
-		onNewMessage({
-			role: "assistant",
-			content: aiRes.text,
-			time: aiRes.time,
-			coreInformations: aiRes.coreInformations,
-		});
+		setLoading(true);
+		try {
+			const aiRes = (await ApiService.sendChatMessage(caseId, userText)) as {
+				text: string;
+				time: string;
+				coreInformations?: string[];
+			};
+			
+			onNewMessage({
+				role: "assistant",
+				content: aiRes.text,
+				time: aiRes.time,
+				coreInformations: aiRes.coreInformations,
+			});
+		} catch (e) {
+			console.error("Fehler beim Senden", e);
+			onNewMessage({
+				role: "assistant",
+				content: "Fehler beim Abruf der Antwort.",
+				time: new Date().toLocaleTimeString(),
+			});
+		} finally {
+			setLoading(false);
+		}
 	};
 	
 	const handlePlayVoice = async (text: string) => {
@@ -75,13 +88,15 @@ export default function ChatWindow({caseId, messages = [], onNewMessage}: ChatWi
 											)}
 										</div>
 										
-										<div className="flex items-center gap-2">
-											<span className="text-[10px] font-mono bg-black/30 px-2 py-0.5 rounded-full">{m.time}</span>
-											{m.coreInformations && m.coreInformations.length > 0 && (
-													<span
-															className="text-[10px] font-semibold bg-black/30 text-white px-2 py-0.5 rounded-full">{m.coreInformations.length}</span>
-											)}
-										</div>
+										{m.role === "assistant" && (
+												<div className="flex items-center gap-2">
+													<span className="text-[10px] font-mono bg-black/30 px-2 py-0.5 rounded-full">{m.time}</span>
+													{m.coreInformations && m.coreInformations.length > 0 && (
+															<span
+																	className="text-[10px] font-semibold bg-black/30 text-white px-2 py-0.5 rounded-full">{m.coreInformations.length}</span>
+													)}
+												</div>
+										)}
 									</div>
 									
 									<p className="text-sm leading-relaxed">{m.content}</p>
@@ -91,17 +106,34 @@ export default function ChatWindow({caseId, messages = [], onNewMessage}: ChatWi
 				</div>
 				
 				<div className="p-4 bg-zinc-900 border-t border-zinc-800">
-					<div className="max-w-3xl mx-auto flex gap-2">
+					<div className="max-w-3xl mx-auto flex items-center gap-2">
 						<input
-								className="flex-1 bg-zinc-800 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+								className="flex-1 bg-zinc-800 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-60 disabled:cursor-not-allowed"
 								placeholder="Was tust du als nächstes, Detective?"
 								value={input}
+								disabled={loading}
 								onInput={(e) => setInput((e.currentTarget as HTMLInputElement).value)}
-								onKeyDown={(e) => e.key === "Enter" && handleSend()}
+								onKeyDown={(e) => e.key === "Enter" && !loading && handleSend()}
 						/>
-						<button onClick={handleSend} className="bg-blue-600 hover:bg-blue-500 p-3 rounded-xl transition-colors">
-							➔
-						</button>
+						
+						{/* Loading indicator */}
+						<div className="flex items-center gap-2">
+							{loading && (
+									<div className="flex items-center gap-2 pr-1">
+										<span className="animate-spin h-5 w-5 border-4 border-white/30 border-t-white rounded-full"
+													aria-hidden="true"></span>
+										<span className="text-xs text-white/70">Senden…</span>
+									</div>
+							)}
+							
+							<button
+									onClick={handleSend}
+									disabled={loading}
+									className={`bg-blue-600 hover:bg-blue-500 p-3 rounded-xl transition-colors ${loading ? "opacity-60 cursor-not-allowed" : ""}`}
+							>
+								➔
+							</button>
+						</div>
 					</div>
 				</div>
 			</>
