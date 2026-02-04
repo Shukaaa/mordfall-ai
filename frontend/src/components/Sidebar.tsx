@@ -40,7 +40,7 @@ export default function Sidebar({ onSelectCase, activeId }: SidebarProps) {
 				<button
 						type="button"
 						onClick={handleCreate}
-						className="w-full mb-6 p-3 bg-zinc-100 text-zinc-900 rounded-lg font-bold hover:bg-white transition-colors flex items-center justify-center"
+						className="w-full mb-6 p-3 bg-zinc-100 text-zinc-900 rounded-lg font-bold hover:bg-white transition-colors flex items-center justify-center cursor-pointer"
 						disabled={creating}
 						aria-busy={creating}
 				>
@@ -63,8 +63,8 @@ export default function Sidebar({ onSelectCase, activeId }: SidebarProps) {
 									key={c.id}
 									type="button"
 									onClick={() => onSelectCase(c.id)}
-									className={`w-full text-left p-3 rounded-md transition-all ${
-											activeId === c.id ? 'bg-zinc-800 border-l-4 border-blue-500' : 'hover:bg-zinc-900'
+									className={`w-full text-left p-3 rounded-md transition-all cursor-pointer ${
+											activeId === c.id ? 'bg-zinc-800' : 'hover:bg-zinc-900'
 									}`}
 									disabled={creating}
 									aria-disabled={creating}
