@@ -26,12 +26,26 @@ const routes: { method: string; pattern: RegExp; handler: RouteHandler }[] = [
 			return CaseController.getAllCoreInfos(id);
 		}
 	},
+	{
+		method: "GET", pattern: /^\/api\/cases\/([^\/]+)\/usernotes$/, handler: (_req, m) => {
+			const id = m?.[1];
+			if (!id) return new Response("Bad Request, missing case ID", {status: 400});
+			return CaseController.getUserNotes(id);
+		}
+	},
+	{
+		method: "POST", pattern: /^\/api\/cases\/([^\/]+)\/usernotes$/, handler: async (req, m) => {
+			const id = m?.[1];
+			if (!id) return new Response("Bad Request, missing case ID", {status: 400});
+			return CaseController.updateUserNotes(id, req);
+		}
+	},
 	{method: "POST", pattern: /^\/api\/chat$/, handler: (req) => CaseController.chat(req)},
 	{
 		method: "GET",
 		pattern: /^\/api\/tts$/,
 		handler: (req) => CaseController.streamTTS(req)
-	},
+	}
 ];
 
 function findRoute(pathname: string, method: string) {

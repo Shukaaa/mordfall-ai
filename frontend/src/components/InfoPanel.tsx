@@ -1,5 +1,5 @@
-import {useEffect, useState, useRef} from 'preact/hooks';
-import {ApiService, type InventoryItem} from '../services/api';
+import { useEffect, useState, useRef } from 'preact/hooks';
+import { ApiService, type InventoryItem } from '../services/api';
 
 interface InfoPanelProps {
 	caseId?: string | number;
@@ -8,45 +8,76 @@ interface InfoPanelProps {
 
 type Tab = 'evidence' | 'inventory';
 
-export default function InfoPanel({caseId, lastUpdateTrigger}: InfoPanelProps) {
+export default function InfoPanel({ caseId, lastUpdateTrigger }: InfoPanelProps) {
 	const [activeTab, setActiveTab] = useState<Tab>('evidence');
 	const [infos, setInfos] = useState<string[]>([]);
 	const [inventory, setInventory] = useState<InventoryItem[]>([]);
 	const [search, setSearch] = useState<string>("");
+	const [userNotes, setUserNotes] = useState<string>("");
 	
 	const [panelWidth, setPanelWidth] = useState(384);
-	const isResizing = useRef(false);
+	const [notesHeight, setNotesHeight] = useState(250);
+	
+	const isResizingWidth = useRef(false);
+	const isResizingHeight = useRef(false);
+	const saveTimeoutRef = useRef<number | null>(null);
 	
 	useEffect(() => {
 		if (caseId != null) {
 			const id = String(caseId);
 			Promise.all([
 				ApiService.getCoreInfos(id),
-				ApiService.getInventory(id)
-			]).then(([newInfos, newInventory]) => {
+				ApiService.getInventory(id),
+				ApiService.getUserNotes(id)
+			]).then(([newInfos, newInventory, noteData]) => {
 				setInfos(newInfos);
 				setInventory(newInventory);
+				setUserNotes(noteData.notes || "");
 			});
 		}
 	}, [caseId, lastUpdateTrigger]);
 	
-	const startResizing = (e: MouseEvent) => {
-		isResizing.current = true;
+	const handleNoteInput = (text: string) => {
+		setUserNotes(text);
+		if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+		
+		saveTimeoutRef.current = window.setTimeout(() => {
+			if (caseId) {
+				ApiService.saveUserNotes(String(caseId), text)
+						.catch(err => console.error(err));
+			}
+		}, 1000);
+	};
+	
+	const startResizingWidth = (e: MouseEvent) => {
+		isResizingWidth.current = true;
 		document.addEventListener("mousemove", handleMouseMove);
 		document.addEventListener("mouseup", stopResizing);
 		document.body.style.cursor = "col-resize";
 	};
 	
+	const startResizingHeight = (e: MouseEvent) => {
+		e.preventDefault();
+		isResizingHeight.current = true;
+		document.addEventListener("mousemove", handleMouseMove);
+		document.addEventListener("mouseup", stopResizing);
+		document.body.style.cursor = "row-resize";
+	};
+	
 	const handleMouseMove = (e: MouseEvent) => {
-		if (!isResizing.current) return;
-		const newWidth = window.innerWidth - e.clientX;
-		if (newWidth > 200 && newWidth < 700) {
-			setPanelWidth(newWidth);
+		if (isResizingWidth.current) {
+			const newWidth = window.innerWidth - e.clientX;
+			if (newWidth > 250 && newWidth < 800) setPanelWidth(newWidth);
+		}
+		if (isResizingHeight.current) {
+			const newHeight = window.innerHeight - e.clientY;
+			if (newHeight > 100 && newHeight < window.innerHeight * 0.7) setNotesHeight(newHeight);
 		}
 	};
 	
 	const stopResizing = () => {
-		isResizing.current = false;
+		isResizingWidth.current = false;
+		isResizingHeight.current = false;
 		document.removeEventListener("mousemove", handleMouseMove);
 		document.removeEventListener("mouseup", stopResizing);
 		document.body.style.cursor = "default";
@@ -60,23 +91,23 @@ export default function InfoPanel({caseId, lastUpdateTrigger}: InfoPanelProps) {
 	
 	return (
 			<div
-					className="relative bg-zinc-900/50 flex h-full border-l border-zinc-800 transition-colors"
-					style={{width: `${panelWidth}px`}}
+					className="relative bg-zinc-900/50 flex h-full border-l border-zinc-800 transition-colors select-none"
+					style={{ width: `${panelWidth}px` }}
 			>
 				<div
-						onMouseDown={startResizing}
+						onMouseDown={startResizingWidth}
 						className="absolute left-[-4px] top-0 w-2 h-full cursor-col-resize hover:bg-blue-500/30 transition-colors z-50"
 				/>
 				
 				<div className="flex flex-col w-full overflow-hidden">
-					<div className="flex border-b border-zinc-800 bg-zinc-950/30">
+					<div className="flex border-b border-zinc-800 bg-zinc-950/30 shrink-0">
 						<button
 								onClick={() => setActiveTab('evidence')}
 								className={`flex-1 py-3 text-[10px] font-bold uppercase tracking-widest transition-all ${
 										activeTab === 'evidence' ? 'text-blue-400 border-b-2 border-blue-400 bg-blue-500/5' : 'text-zinc-500 hover:text-zinc-300'
 								}`}
 						>
-							Informationen ({infos.length})
+							Logs ({infos.length})
 						</button>
 						<button
 								onClick={() => setActiveTab('inventory')}
@@ -88,20 +119,19 @@ export default function InfoPanel({caseId, lastUpdateTrigger}: InfoPanelProps) {
 						</button>
 					</div>
 					
-					<div className="p-4 flex flex-col h-full overflow-hidden">
+					<div className="p-4 flex flex-col flex-1 overflow-hidden">
 						<input
 								type="text"
 								placeholder={`${activeTab === 'evidence' ? 'Hinweise' : 'Gegenstände'} suchen...`}
-								className="bg-zinc-800/50 p-2 rounded mb-4 text-xs focus:ring-1 ring-blue-500 outline-none border border-zinc-700/50"
+								className="bg-zinc-800/50 p-2 rounded mb-4 text-xs focus:ring-1 ring-blue-500 outline-none border border-zinc-700/50 text-zinc-200"
 								onInput={(e: Event) => setSearch((e.target as HTMLInputElement).value)}
 						/>
 						
-						<div className="flex-1 overflow-y-auto space-y-2 pr-1 custom-scrollbar">
+						<div className="flex-1 overflow-y-auto space-y-2 pr-1 custom-scrollbar select-text">
 							{activeTab === 'evidence' ? (
 									filteredEvidence.length > 0 ? (
 											filteredEvidence.map((info, idx) => (
-													<div key={idx}
-															 className="p-3 bg-zinc-800/80 border border-zinc-700 rounded-lg text-sm text-zinc-300 animate-in slide-in-from-right-2 duration-300">
+													<div key={idx} className="p-3 bg-zinc-800/80 border border-zinc-700 rounded-lg text-sm text-zinc-300 animate-in slide-in-from-right-2 duration-300">
 														<div className="flex gap-2">
 															<span className="text-blue-500 font-bold">•</span>
 															<p className="leading-relaxed">{info}</p>
@@ -114,21 +144,47 @@ export default function InfoPanel({caseId, lastUpdateTrigger}: InfoPanelProps) {
 							) : (
 									filteredInventory.length > 0 ? (
 											filteredInventory.map((item) => (
-													<div key={item.id}
-															 className="group p-3 bg-zinc-800/80 border border-zinc-700 rounded-lg text-sm text-zinc-100 animate-in zoom-in-95 duration-300">
+													<div key={item.id} className="group p-3 bg-zinc-800/80 border border-zinc-700 rounded-lg text-sm text-zinc-100 animate-in zoom-in-95 duration-300">
 														<div className="flex items-center gap-2 mb-1">
-															<div className="w-2 h-2 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.5)]"/>
+															<div className="w-2 h-2 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.5)]" />
 															<span className="font-bold text-xs uppercase tracking-tight">{item.name}</span>
 														</div>
 														<p className="text-zinc-400 text-xs leading-snug">{item.description}</p>
 													</div>
 											))
 									) : (
-											<p className="text-zinc-600 text-xs text-center mt-4 italic">Inventar ist leer.</p>
+											<p className="text-zinc-600 text-xs text-center mt-4 italic">Das Inventar ist leer.</p>
 									)
 							)}
 						</div>
 					</div>
+					
+					{activeTab === 'evidence' && (
+							<div
+									className="relative border-t border-zinc-800 bg-zinc-950/50 flex flex-col shrink-0"
+									style={{ height: `${notesHeight}px` }}
+							>
+								<div
+										onMouseDown={startResizingHeight}
+										className="absolute top-[-3px] left-0 w-full h-2 cursor-row-resize hover:bg-blue-500/30 transition-colors z-50"
+								/>
+								
+								<div className="p-4 flex flex-col h-full overflow-hidden">
+									<div className="flex items-center justify-between mb-2">
+										<h4 className="text-[10px] font-bold uppercase text-zinc-500 tracking-tighter">
+											Handnotizen des Detectives
+										</h4>
+										<div className="w-1.5 h-1.5 rounded-full bg-zinc-700 animate-pulse" />
+									</div>
+									<textarea
+											value={userNotes}
+											onInput={(e) => handleNoteInput(e.currentTarget.value)}
+											placeholder="Eigene Theorien, Fragen, Verdächtige..."
+											className="flex-1 bg-transparent text-sm text-zinc-400 resize-none outline-none placeholder:text-zinc-700 placeholder:italic leading-relaxed custom-scrollbar select-text"
+									/>
+								</div>
+							</div>
+					)}
 				</div>
 			</div>
 	);

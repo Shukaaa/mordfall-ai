@@ -134,5 +134,16 @@ export const CaseController = {
 			console.error("TTS Stream Error:", error);
 			return new Response("Internal Server Error", { status: 500 });
 		}
+	},
+	
+	async getUserNotes(caseId: string) {
+		const row = db.prepare("SELECT user_notes FROM cases WHERE id = ?").get(caseId) as { user_notes: string };
+		return Response.json({ notes: row?.user_notes || "" });
+	},
+	
+	async updateUserNotes(caseId: string, req: Request) {
+		const { notes } = await req.json();
+		db.run("UPDATE cases SET user_notes = ? WHERE id = ?", [notes, caseId]);
+		return Response.json({ success: true });
 	}
 };

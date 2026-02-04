@@ -6,7 +6,8 @@ db.run(`CREATE TABLE IF NOT EXISTS cases
         (
             id                INTEGER PRIMARY KEY AUTOINCREMENT,
             title             TEXT,
-            initial_prompt    TEXT
+            initial_prompt    TEXT,
+            user_notes        TEXT
         )`);
 
 db.run(`CREATE TABLE IF NOT EXISTS messages

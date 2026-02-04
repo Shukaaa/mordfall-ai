@@ -1,0 +1,15 @@
+meta {
+  name: Fetch all User Notes
+  type: http
+  seq: 6
+}
+
+get {
+  url: {{apiUrl}}/cases/:id/usernotes
+  body: none
+  auth: inherit
+}
+
+params:path {
+  id: 1
+}

@@ -33,6 +33,21 @@ export const ApiService = {
 		return res.json();
 	},
 	
+	async getUserNotes(caseId: string) {
+		const res = await fetch(`${API_BASE}/cases/${caseId}/usernotes`);
+		const data = await res.json();
+		return data.notes;
+	},
+	
+	async saveUserNotes(caseId: string, notes: string) {
+		const res = await fetch(`${API_BASE}/cases/${caseId}/usernotes`, {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({ caseId, notes }),
+		});
+		return res.json();
+	},
+	
 	async sendChatMessage(caseId: string, message: string) {
 		const res = await fetch(`${API_BASE}/chat`, {
 			method: "POST",

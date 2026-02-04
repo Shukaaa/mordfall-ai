@@ -1,0 +1,21 @@
+meta {
+  name: Update User Notes
+  type: http
+  seq: 7
+}
+
+post {
+  url: {{apiUrl}}/cases/:id/usernotes
+  body: json
+  auth: inherit
+}
+
+params:path {
+  id: 1
+}
+
+body:json {
+  {
+    "notes": "hi"
+  }
+}
