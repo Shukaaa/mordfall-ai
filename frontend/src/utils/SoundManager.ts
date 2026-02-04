@@ -66,14 +66,14 @@ class SoundManager {
 		const audio = new Audio(src);
 		audio.loop = options.loop || false;
 		
-		const finalVolume = this.groups[group].volume;
-		audio.volume = options.fadeInDuration ? 0 : finalVolume;
+		const currentVolume = this.groups[group].volume;
+		audio.volume = options.fadeInDuration ? 0 : currentVolume;
 		
 		this.groups[group].instances.push(audio);
 		audio.play().catch(e => console.warn("Autoplay blockiert", e));
 		
 		if (options.fadeInDuration) {
-			this.fadeAudio(audio, finalVolume, options.fadeInDuration);
+			this.fadeAudio(audio, currentVolume, options.fadeInDuration);
 		}
 		
 		audio.onended = () => {
@@ -102,9 +102,22 @@ class SoundManager {
 		this.groups[group].instances = [];
 	}
 	
+	async playVoiceWithIntro(text: string, apiBase: string) {
+		this.stopGroup('voice');
+		this.play('/sounds/recorder.wav', 'sfx', { layerable: true });
+		const url = `${apiBase}/tts?text=${encodeURIComponent(text)}`;
+		return this.play(url, 'voice', { layerable: false });
+	}
+	
 	setGroupVolume(group: SoundGroup, volume: number) {
 		this.groups[group].volume = volume;
-		this.groups[group].instances.forEach(a => a.volume = volume);
+		this.groups[group].instances.forEach(a => {
+			a.volume = volume;
+		});
+	}
+	
+	getGroupVolume(group: SoundGroup): number {
+		return this.groups[group].volume;
 	}
 }
 

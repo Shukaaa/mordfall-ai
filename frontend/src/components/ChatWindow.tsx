@@ -74,8 +74,7 @@ export default function ChatWindow({caseId, messages = [], onNewMessage}: ChatWi
 	
 	const handlePlayVoice = async (text: string) => {
 		try {
-			const audio = new Audio(`${API_BASE}/tts?text=${encodeURIComponent(text)}`);
-			audio.play().catch((e) => console.error("Playback failed", e));
+			await soundManager.playVoiceWithIntro(text, API_BASE);
 		} catch (e) {
 			console.error("Sprachausgabe fehlgeschlagen", e);
 		}
