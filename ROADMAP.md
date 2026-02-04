@@ -1,9 +1,9 @@
 # Noir Atmosphäre
 
 - [ ] White Mode Support
-- [ ] Typewriter-Effekt
+- [x] Typewriter-Effekt
   - Kleine Animation nachdem ein Text verfasst wurde + Soundeffekt
-- [ ] Hintergrundmusik
+- [x] Hintergrundmusik
 - [ ] Einstellungs-Dialog
   - Musik an/aus
   - Soundeffekte an/aus
@@ -13,6 +13,8 @@
 
 - [ ] Inventar hinzufügen
   - Man kann Gegenstände sammeln und benutzen z.B. Schlüssel
+- [ ] Evidence Log Rework
+  - Beweise werden mit Tags versehen (z.B. Tatort, Zeugenaussagen, Forensik)
 - [ ] Evidence-Panel erweitern
   - Man kann nun zwischen mehreren Informationen wechseln:
     - Evidences

@@ -3,6 +3,7 @@ import Sidebar from './components/Sidebar';
 import ChatWindow from './components/ChatWindow';
 import InfoPanel from './components/InfoPanel';
 import { ApiService } from './services/api';
+import {soundManager} from "./utils/SoundManager.ts";
 
 type Message = {
   role: 'user' | 'assistant' | 'system' | string;
@@ -30,6 +31,16 @@ export function App() {
       loadHistory(activeCaseId);
     } else {
       setMessages([]);
+    }
+  }, [activeCaseId]);
+  
+  useEffect(() => {
+    if (activeCaseId) {
+      soundManager.play('/sounds/noir_jazz.mp3', 'music', { loop: true, fadeInDuration: 2000, layerable: false });
+      soundManager.play('/sounds/rain.wav', 'ambient', { loop: true, fadeInDuration: 3000, layerable: false });
+    } else {
+      soundManager.fadeOutGroup('music', 3000);
+      soundManager.fadeOutGroup('ambient', 2000);
     }
   }, [activeCaseId]);
   
