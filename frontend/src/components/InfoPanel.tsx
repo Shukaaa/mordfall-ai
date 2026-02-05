@@ -49,7 +49,7 @@ export default function InfoPanel({ caseId, lastUpdateTrigger }: InfoPanelProps)
 		}, 1000);
 	};
 	
-	const startResizingWidth = (e: MouseEvent) => {
+	const startResizingWidth = () => {
 		isResizingWidth.current = true;
 		document.addEventListener("mousemove", handleMouseMove);
 		document.addEventListener("mouseup", stopResizing);

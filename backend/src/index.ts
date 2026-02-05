@@ -68,12 +68,14 @@ function applyDefaultHeaders(res: Response) {
 }
 
 const server = Bun.serve({
+	hostname: "0.0.0.0",
 	port: 3000,
 	idleTimeout: 60 * 3,
 	async fetch(req) {
 		try {
 			const url = new URL(req.url);
-			const pathname = url.pathname;
+			let pathname = url.pathname;
+			
 			// Preflight
 			if (req.method === "OPTIONS") {
 				return new Response(null, {
@@ -87,12 +89,28 @@ const server = Bun.serve({
 			}
 			
 			const found = findRoute(pathname, req.method);
-			if (!found) return new Response("Not Found", {status: 404});
+			if (found) {
+				console.log(`[API] ${req.method} ${pathname}`);
+				const resp = await found.route.handler(req, found.match);
+				return applyDefaultHeaders(resp instanceof Response ? resp : new Response(String(resp)));
+			}
 			
-			console.log(`${req.method} ${pathname}`);
+			if (pathname === "/") pathname = "/index.html";
 			
-			const resp = await found.route.handler(req, found.match);
-			return applyDefaultHeaders(resp instanceof Response ? resp : new Response(String(resp)));
+			const filePath = `./public${pathname}`;
+			const file = Bun.file(filePath);
+			
+			if (await file.exists()) {
+				console.log(`[Static] ${pathname}`);
+				return new Response(file);
+			}
+			
+			const indexFallback = Bun.file("./public/index.html");
+			if (await indexFallback.exists()) {
+				return new Response(indexFallback);
+			}
+			
+			return new Response("Not Found", { status: 404 });
 		} catch (err) {
 			console.error("Server error:", err);
 			return new Response(JSON.stringify({error: "Internal Server Error"}), {

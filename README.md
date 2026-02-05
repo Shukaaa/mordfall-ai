@@ -35,7 +35,17 @@ Die Besonderheit: Die KI fungiert als Game-Master, der Zeitabläufe verwaltet, B
 
 ## Installation & Setup
 
-### 1. Repository klonen & Dependencies installieren
+### via Docker
+
+**Container starten**
+
+```bash
+docker run -d -p 3000:3000 -e OPENAI_API_KEY="key" --name mordfall shukaaa/mordfall:latest
+```
+
+### via Repository
+
+#### 1. Repository klonen & Dependencies installieren
 
 ```bash
 # Repository klonen
@@ -50,7 +60,7 @@ npm run install:all
 
 ```
 
-### 2. Umgebungsvariablen
+#### 2. Umgebungsvariablen
 
 Erstelle eine `.env` Datei im backend-Verzeichnis:
 
@@ -58,7 +68,7 @@ Erstelle eine `.env` Datei im backend-Verzeichnis:
 OPENAI_API_KEY=dein_openai_api_schlüssel
 ```
 
-### 3. Server starten
+#### 3. Server starten
 
 Starte das Backend und Frontend
 ```bash

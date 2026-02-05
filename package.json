@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "scripts": {
     "install:all": "cd backend && bun install && cd ../frontend && npm install",
-    "start:all": "concurrently \"cd backend && npm run start\" \"cd frontend && npm run dev\""
+    "start:all": "concurrently \"cd backend && npm run start\" \"cd frontend && npm run dev\"",
+    "build": "cd frontend && bun run build && cd .. && node scripts/copy-builds.js && cd build && bun install"
   },
   "author": "Shukaaa",
   "license": "ISC",
